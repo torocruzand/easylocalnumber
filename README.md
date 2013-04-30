@@ -99,3 +99,44 @@ set the cNum of field "taxIncTotal" to it
 ```
 In short, this means that your user can enter a number in your EasyLocalNumber field using local currency symbol and separators, and the number will always be displayed to them using their own, local formatting. When you want to get or set the value of the field in your scripts, just use the cNum virtual property.
 
+## Examples & Recipes
+__NUMERIC DATA ENTRY IN LATIN AMERICA__
+
+In Latin America, the comma is used as a decimal separator, and the full stop (period) is used as a thousands separator. To setup an EasyLocalNumber field for general numeric entry in Latin America, set the following custom properties:
+ * cDecimalSep: __,__ (comma)
+ * cThouSep: __.__ (period)
+
+__NUMERIC DATA ENTRY USING SI STANDARD__
+
+The international [SI](http://en.wikipedia.org/wiki/SI) standard specifies that the full stop (period) be used as a decimal separator, and a space be used for the thousands. To specify this in your EasyLocalNumber field, set the following properties:
+ * cDecimalSep: __.__ (period)
+ * cThouSep: ' ' (space)
+
+__CURRENCY FIELD - EURO, FRANCE__
+
+In France, the Euro symbol is displayed __after__ the number, and the decimal and thousands separators are also different. To setup an EasyLocalNumber field to handle Euros in the French standard, set the following custom properties:
+ * cDecimalSep: __,__ (comma)
+ * cThouSep: __.__ (period)
+ * cSymbol: €
+ * cSymbolPos: after
+
+__CURRENCY FIELD - NEW ZEALAND DOLLARS, NEGATIVES IN RED__
+
+In order to setup an EasyLocalNumber field to handle New Zealand dollars, set the following custom properties:
+ * cDecimalSep: __.__ (period)
+ * cThouSep: __,__ (comma)
+ * cSymbol: NZ$
+ * cSymbolPos: before
+
+In order to make the field display negative numbers in __red__, add the following to your field script:
+```
+on textChanged
+   if the cNum of me < 0 then 
+      set the textColor of me to 255,0,0
+   else
+      set the textColor of me to empty
+   end if
+end textChanged
+```
+
+
