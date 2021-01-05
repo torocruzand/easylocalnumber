@@ -3,40 +3,40 @@
 */
 before textChanged
    -- if the field is empty then we don't need to do anything:
-   if me is empty then pass textChanged  
-   
+   if me is empty then pass textChanged
+
    -- for speed:
    local tLockStatus
    put the lockMessages into tLockStatus
    lock messages
-   
+
    -- saving the current position of the text cursor:
    local tTxtCursorPos
    put word 4 of the selectedChunk into tTxtCursorPos
-   
+
    -- catching the situation where the user is next to a decimal separator,
-   -- and types it again - it should just 'skip' past the separator, rather than 
+   -- and types it again - it should just 'skip' past the separator, rather than
    -- type a second one in the field:
    if (char tTxtCursorPos of me is the cDecimalSep of me) and \
-         (char tTxtCursorPos+1 of me is the cDecimalSep of me) then 
+         (char tTxtCursorPos+1 of me is the cDecimalSep of me) then
       delete char tTxtCursorPos+1 of me
       pass textChanged
    end if
-   
+
    -- change field contents to a LiveCode number,
    -- keeping track of the text cursor position:
    local tEditedNum
    put localNumToNum(me,tTxtCursorPos) into tEditedNum
-   
+
    -- change back to a localised number,
    -- keeping track of the text cursor position:
    put numToLocalNum(tEditedNum["number"], tEditedNum["cursor"]) into tEditedNum
-   
+
    -- resetting the text and the cursor position:
    put tEditedNum["number"] into me
    put tEditedNum["cursor"] into tTxtCursorPos
    select char (tTxtCursorPos)+1 to tTxtCursorPos of me
-   
+
    -- to finish off, unlock messages, if needed:
    if tLockStatus is false then unlock messages
 end textChanged
@@ -47,19 +47,19 @@ If the field is displaying a currency value, then we need to handle operations
 like deleting numbers around the decimal separator, and deleting a minus sign
 appearing before a currency symbol.
 */
-on backspaceKey 
+on backspaceKey
    -- if the user has an actual text selection - rather than just an insertion point -
    -- we assume the action is intentional, and just let it happen:
    if word 2 of the selectedChunk <= word 4 of the selectedChunk then pass backspaceKey
    local tTxtCursorPos
    put word 4 of the selectedChunk into tTxtCursorPos
-   
+
    -- if the previous character is a decimal separator, we just 'skip' it:
-   if char tTxtCursorPos of me is the cDecimalSep of me then 
+   if char tTxtCursorPos of me is the cDecimalSep of me then
       select char tTxtCursorPos to tTxtCursorPos-1 of me
       exit backspaceKey
    end if
-   
+
    -- if we are to the left of a minus sign and the currency symbol,
    -- then we delete the minus sign:
    if char 1 to (the length of the cSymbol of me + 1) of me is ("-" & the cSymbol of me) and \
@@ -69,25 +69,25 @@ on backspaceKey
       send "textChanged" to me
       exit backspaceKey
    end if
-   
+
    pass backspaceKey
 end backspaceKey
 
 
-on deleteKey 
+on deleteKey
    -- if the user has an actual text selection - rather than just an insertion point -
    -- we assume the action is intentional, and just let it happen:
    if word 2 of the selectedChunk <= word 4 of the selectedChunk then pass deleteKey
    local tTxtCursorPos
    put word 2 of the selectedChunk into tTxtCursorPos
-   
+
    -- if the previous character is a decimal separator, we just 'skip' it:
-   if char tTxtCursorPos of me is the cDecimalSep of me then 
+   if char tTxtCursorPos of me is the cDecimalSep of me then
       select char tTxtCursorPos+1 to tTxtCursorPos of me
       exit deleteKey
    else
       pass deleteKey
-   end if   
+   end if
 end deleteKey
 
 
@@ -120,13 +120,13 @@ end cNum
 
 /*
 The decimal separator is *required* to exist. If no decimal separator is set, it will default to
-LiveCode's standard "." - the full-stop, or period. Consequently, it is not possible to set the 
-decimal separator to 'empty'. 
+LiveCode's standard "." - the full-stop, or period. Consequently, it is not possible to set the
+decimal separator to 'empty'.
 
 The decimal separator is always 1 single character - in every culture. If more than one character
-is passed, then only the first character of the string will be used. 
+is passed, then only the first character of the string will be used.
 
-Lastly, the decimal separator and the thousands separator should be different from each other. 
+Lastly, the decimal separator and the thousands separator should be different from each other.
 Trying to set a decimal separator equal to the thousands separator will cause the thousands
 separator to set to 'empty'.
 */
@@ -149,18 +149,18 @@ end cDecimalSep
 
 /*
 When we change the thousands separator, we should auto-replace any existing
-thousands separators, if required. 
+thousands separators, if required.
 
 The thousands separator is always 1 single character - in every culture. If more than one character
-is passed, then only the first character of the string will be used. 
+is passed, then only the first character of the string will be used.
 
-The thousands separator has to be different from the decimal separator. 
+The thousands separator has to be different from the decimal separator.
 */
 setProp cThouSep pString
    -- we cannot allow the thousands separator to be made the same as the decimal separator:
    if the length of pString > 1 then put char 1 of pString into pString
    if (pString is not empty) and (pString is the cDecimalSep of me) then exit cThouSep
-   if (the cThouSep of me is not empty) then 
+   if (the cThouSep of me is not empty) then
       replace the cThouSep of me with pString in me
       pass cThouSep
    else
@@ -178,7 +178,7 @@ When we change the currency symbol, we should auto-replace any existing
 currency sumbol, if required.
 */
 setProp cSymbol pString
-   if (the cSymbol of me is not empty) then 
+   if (the cSymbol of me is not empty) then
       replace the cSymbol of me with pString in me
       pass cSymbol
    else
@@ -204,7 +204,7 @@ setProp cSymbolPos pString
    put numToLocalNum(tNum["number"]) into tNum
    put tNum["number"] into me
 end cSymbolPos
-   
+
 
 /*
 =============================================
@@ -216,31 +216,31 @@ It is unlikely they would be of any use outside this context, so they are declar
 
 
 /*
-This function gets a string that represents a localised numeric or currency value, and returns 
-a LiveCode standard number. It is expected that the localised number will be using the 
+This function gets a string that represents a localised numeric or currency value, and returns
+a LiveCode standard number. It is expected that the localised number will be using the
 localisation settings stored in the cDecimalSep, cThouSep, cSymbol, and cSymbolPos custom
 properties of the field.
 
 Optionally, a text cursor position may be passed to the function. When the number is converted,
 the text cursor position will be maintained, relative to the DECIMAL SEPARATOR in the original
-localised number - that is: if the cursor was 2 characters to the left of the decimal separator in 
-the localised number, then the number returned will be 2 characters to the left of the decimal point 
-in the LiveCode number. If no cursor position is passed, it will returne the position at the end of 
+localised number - that is: if the cursor was 2 characters to the left of the decimal separator in
+the localised number, then the number returned will be 2 characters to the left of the decimal point
+in the LiveCode number. If no cursor position is passed, it will returne the position at the end of
 the number.
 
 @param pLocalNum string a localised numeric or currency value, using the localisation values set
 in the cDecimalSep, cThouSep, cSymbol and cSymbolPos of the field.
 @param pTxtCursorPos integer a number indicating the position the cursor is in the localised number.
-The first position in the string is "0" - ie, indicating that the cursor should be before char 1. 
-@return array The returned array will contain 2 keys: 
+The first position in the string is "0" - ie, indicating that the cursor should be before char 1.
+@return array The returned array will contain 2 keys:
 - 'number': will contain the string with the localised number
-- 'cursor': will contain an integer indicating the position of the text cursor in the localised number. The 
-first position in the string is "0" - ie, indicating that the cursor should be before char 1. 
+- 'cursor': will contain an integer indicating the position of the text cursor in the localised number. The
+first position in the string is "0" - ie, indicating that the cursor should be before char 1.
 */
 function localNumToNum pLocalNum,pTxtCursorPos
    local tResult
    -- check that we have something to work with:
-   if pLocalNum is empty then 
+   if pLocalNum is empty then
       put empty into tResult["number"]
       put 0 into tResult["cursor"]
       return tResult
@@ -254,7 +254,7 @@ function localNumToNum pLocalNum,pTxtCursorPos
    repeat with x = the length of pLocalNum down to 1
       if char x of pLocalNum is not in tOKChars then
          delete char x of pLocalNum
-         if (pTxtCursorPos is not empty) and (x <= pTxtCursorPos) then subtract 1 from pTxtCursorPos 
+         if (pTxtCursorPos is not empty) and (x <= pTxtCursorPos) then subtract 1 from pTxtCursorPos
       end if
    end repeat
    -- replace all localised decimal separators with the LiveCode 'default':
@@ -267,7 +267,7 @@ function localNumToNum pLocalNum,pTxtCursorPos
       if char x of pLocalNum is "." then
          if tDecimalFlag then
             delete char x of pLocalNum
-            if (pTxtCursorPos is not empty) and (x <= pTxtCursorPos) then 
+            if (pTxtCursorPos is not empty) and (x <= pTxtCursorPos) then
                subtract 1 from pTxtCursorPos
             end if
          else
@@ -277,7 +277,7 @@ function localNumToNum pLocalNum,pTxtCursorPos
    end repeat
    -- removing any unnecessary '0s to the left':
    local tHasMinus
-   if first char of pLocalNum is "-" then 
+   if first char of pLocalNum is "-" then
       delete first char of pLocalNum
       if (pTxtCursorPos is not empty) and (pTxtCursorPos > 0) then subtract 1 from pTxtCursorPos
       put true into tHasMinus
@@ -286,7 +286,7 @@ function localNumToNum pLocalNum,pTxtCursorPos
    end if
    repeat while the first char of pLocalNum is "0"
       delete first char of pLocalNum
-      if (pTxtCursorPos is not empty) and (pTxtCursorPos > 0) then subtract 1 from pTxtCursorPos 
+      if (pTxtCursorPos is not empty) and (pTxtCursorPos > 0) then subtract 1 from pTxtCursorPos
    end repeat
    if tHasMinus then
       put "-" before pLocalNum
@@ -302,29 +302,29 @@ end localNumToNum
 
 /*
 This function gets a LiveCode number, and returns a localised numeric or currency value,
-using the localisation settings stored in the cDecimalSep, cThouSep, cSymbol, and cSymbolPos 
+using the localisation settings stored in the cDecimalSep, cThouSep, cSymbol, and cSymbolPos
 custom properties of the field.
 
 Optionally, a text cursor position may be passed to the function. When the number is converted,
 the text cursor position will be maintained, relative to the DECIMAL SEPARATOR in the original
-LiveCode number - that is: if the cursor was 2 characters to the left of the decimal separator in 
-the LiveCode number, then the number returned will be 2 characters to the left of the decimal point 
-in the localised number. If no cursor position is passed, it will returne the position at the end of 
+LiveCode number - that is: if the cursor was 2 characters to the left of the decimal separator in
+the LiveCode number, then the number returned will be 2 characters to the left of the decimal point
+in the localised number. If no cursor position is passed, it will returne the position at the end of
 the number.
 
 @param pNum number a LiveCode number.
 @param pTxtCursorPos integer a number indicating the position the cursor is in the LiveCode number.
-The first position in the string is "0" - ie, indicating that the cursor should be before char 1. 
-@return array The returned array will contain 2 keys: 
-- 'number': will contain the string with the localised numeric or currency value, using the localisation values 
+The first position in the string is "0" - ie, indicating that the cursor should be before char 1.
+@return array The returned array will contain 2 keys:
+- 'number': will contain the string with the localised numeric or currency value, using the localisation values
 set in the cDecimalSep, cThouSep, cSymbol and cSymbolPos of the field.
 - 'cursor': will contain an integer indicating the position of the text cursor in the localised number.
 */
 function numToLocalNum pNum,pTxtCursorPos
    -- check that we have something to work with:
    local tResult
-   if pNum is empty then 
-      put empty into tResult{"number"]
+   if pNum is empty then
+      put empty into tResult["number"]
       put 0 into tResult["cursor"]
       return tResult
    end if
@@ -373,7 +373,7 @@ function numToLocalNum pNum,pTxtCursorPos
       put "0." before tDec
       put round(tDec,2) into tDec
       delete char 1 to 2 of tDec
-      if (pTxtCursorPos is not empty) and (pTxtCursorPos > (the length of tInt + 3)) then  
+      if (pTxtCursorPos is not empty) and (pTxtCursorPos > (the length of tInt + 3)) then
          put (the length of tInt + 3) into pTxtCursorPos
       end if
    end if
@@ -386,7 +386,7 @@ function numToLocalNum pNum,pTxtCursorPos
    -- first, add the thousands separators to the integer part, if required:
    put last char of tInt into pNum
    repeat with x = -2 down to (the length of tInt * -1)
-      if abs(x) mod 3 is 1 then 
+      if abs(x) mod 3 is 1 then
          put the cThouSep of me before pNum
          if (pTxtCursorPos is not empty) and ((the length of tInt+x) < pTxtCursorPos) then add 1 to pTxtCursorPos
       end if
@@ -396,17 +396,17 @@ function numToLocalNum pNum,pTxtCursorPos
    if tHasDecimalSep or tIsCurrency then put the cDecimalSep of me & tDec after pNum
    -- add the currency symbol, if needed:
    if tIsCurrency and the cSymbolPos of me is "after" then put the cSymbol of me after pNum
-   if tIsCurrency and the cSymbolPos of me is "before" then 
+   if tIsCurrency and the cSymbolPos of me is "before" then
       put the cSymbol of me before pNum
       if (pTxtCursorPos is not empty) then add the length of the cSymbol of me to pTxtCursorPos
-   end if      
+   end if
    -- add the minus sign, if needed:
-   if tHasMinus then 
+   if tHasMinus then
       put "-" before pNum
       if (pTxtCursorPos is not empty) then add 1 to pTxtCursorPos
    end if
    -- finally:
-   if pTxtCursorPos is empty then 
+   if pTxtCursorPos is empty then
       put the length of pNum into tResult["cursor"]
    else
       put pTxtCursorPos into tResult["cursor"]
